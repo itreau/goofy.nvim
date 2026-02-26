@@ -1,17 +1,19 @@
-local animator = require("goofy.engine.animator")
+local config = require("goofy.config")
+local normalize = require("goofy.normalize")
+local hooks = require("goofy.hooks")
+local registry = require("goofy.registry")
 
 local M = {}
 
-M.config = {
-	enabled = true,
-}
+function M.setup(user_opts)
+	local opts = config.merge(user_opts)
 
-function M.setup(opts)
-	vim.api.nvim_create_user_command("GoofyTest", function()
-		local anim = require("goofy.animations.cool_glasses")
-		animator.play(anim.frames, anim.delay)
-	end, {})
-	M.config = vim.tbl_deep_extend("force", M.config, opts or {})
+	M.opts = opts
+
+	registry.load()
+
+	local hook_specs = normalize.normalize(opts.animations)
+	hooks.register_all(hook_specs)
 end
 
 return M
