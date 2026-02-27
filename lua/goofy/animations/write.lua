@@ -7,8 +7,8 @@ return {
 	},
 	opts = {
 		color = "String",
-		position = "bottom_right",
-		width = 20,
+		position = "center",
+		width = 36,
 		height = 3,
 	},
 }

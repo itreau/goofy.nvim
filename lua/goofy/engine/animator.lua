@@ -2,8 +2,18 @@ local window = require("goofy.engine.window")
 
 local M = {}
 
+local function normalize_frame(frame)
+	if type(frame) == "string" then
+		local lines = vim.split(frame, "\n", { plain = true, trimempty = false })
+		for i, line in ipairs(lines) do
+			lines[i] = line:gsub("\r", "")
+		end
+		return lines
+	end
+	return frame
+end
+
 function M.play(anim, global_opts)
-	print(anim)
 	local frames = anim.frames
 	local delay = anim.delay or 100
 
@@ -26,10 +36,11 @@ function M.play(anim, global_opts)
 				return
 			end
 
+			local frame = normalize_frame(frames[i])
 			if not buf then
-				buf, win = window.open(frames[i], opts)
+				buf, win = window.open(frame, opts)
 			else
-				vim.api.nvim_buf_set_lines(buf, 0, -1, false, frames[i])
+				vim.api.nvim_buf_set_lines(buf, 0, -1, false, frame)
 			end
 			i = i + 1
 		end)
