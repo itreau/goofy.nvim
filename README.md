@@ -12,7 +12,7 @@ Goofy adds fun ASCII animations that trigger when you run configured commands. S
 
 ```lua
 {
-  "Itreau96/goofy.nvim",
+  "itreau/goofy.nvim",
   config = function()
     require("goofy").setup({
       animations = {
@@ -31,7 +31,7 @@ Goofy adds fun ASCII animations that trigger when you run configured commands. S
 
 ```lua
 use({
-  "Itreau96/goofy.nvim",
+  "itreau/goofy.nvim",
   config = function()
     require("goofy").setup({
       animations = {
