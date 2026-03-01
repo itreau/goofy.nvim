@@ -1,5 +1,7 @@
 return {
-	delay = 1000,
+	type = "swipe",
+	duration = 500,
+	direction = "left",
 	frames = {
 		[[
                 _2=826=8
