@@ -1,27 +1,19 @@
 local window = require("goofy.engine.window")
+local utils = require("goofy.utils")
 
 local M = {}
 
 local FRAME_DELAY = 16
 
-local SUPPORTED_DIRECTIONS = {
-	["left"] = true,
-	["right"] = true,
-	["up"] = true,
-	["down"] = true,
+-- Using vector table for text shifts within ascii frame --
+local DIRECTIONS = {
+	left = { x = 1, y = 0 },
+	right = { x = -1, y = 0 },
+	up = { x = 0, y = 1 },
+	down = { x = 0, y = -1 },
 }
 
-local function normalize_frame(frame)
-	if type(frame) == "string" then
-		local lines = vim.split(frame, "\n", { plain = true, trimempty = false })
-		for i, line in ipairs(lines) do
-			lines[i] = line:gsub("\r", "")
-		end
-		return lines
-	end
-	return frame
-end
-
+-- Returns max character width and number of lines in frame --
 local function get_frame_dimensions(lines)
 	local max_width = 0
 	for _, line in ipairs(lines) do
@@ -32,68 +24,61 @@ local function get_frame_dimensions(lines)
 	return max_width, #lines
 end
 
-local function shift_frame_horizontal(lines, shift, direction, max_width)
-	local result = {}
-	for _, line in ipairs(lines) do
-		if direction == "left" then
-			local padded = line .. string.rep(" ", max_width)
-			table.insert(result, padded:sub(shift + 1, shift + max_width))
-		else
-			local padded = string.rep(" ", max_width) .. line
-			table.insert(result, padded:sub(max_width - shift + 1, max_width * 2 - shift))
-		end
-	end
-	return result
-end
-
-local function shift_frame_vertical(lines, shift, direction, max_width)
+-- Generic shift function moves image by pre-pending spaces --
+local function shift_frame(lines, shift, dir, width)
 	local result = {}
 	local num_lines = #lines
-	local empty_line = string.rep(" ", max_width)
+	local empty_line = string.rep(" ", width)
 
-	if direction == "up" then
-		for i = shift + 1, num_lines do
-			table.insert(result, lines[i])
-		end
-		for i = 1, math.min(shift, num_lines) do
-			table.insert(result, empty_line)
+	if dir.x ~= 0 then
+		for _, line in ipairs(lines) do
+			local padded
+			if dir.x > 0 then
+				padded = line .. empty_line
+			else
+				padded = empty_line .. line
+			end
+			local start = dir.x > 0 and (shift + 1) or (width - shift + 1)
+			table.insert(result, padded:sub(start, start + width - 1))
 		end
 	else
-		for i = 1, math.min(shift, num_lines) do
-			table.insert(result, empty_line)
-		end
-		local start_idx = math.max(1, shift - num_lines + 1)
-		for i = start_idx, num_lines do
-			table.insert(result, lines[i - start_idx + 1])
+		if dir.y > 0 then
+			for i = shift + 1, num_lines do
+				table.insert(result, lines[i])
+			end
+			for _ = 1, math.min(shift, num_lines) do
+				table.insert(result, empty_line)
+			end
+		else
+			for _ = 1, math.min(shift, num_lines) do
+				table.insert(result, empty_line)
+			end
+			for i = 1, num_lines - math.min(shift, num_lines) do
+				table.insert(result, lines[i])
+			end
 		end
 	end
+
 	return result
 end
 
 function M.validate(anim)
-	assert(SUPPORTED_DIRECTIONS[anim.direction], "Swipe direction not supported: " .. tostring(anim.direction))
+	assert(DIRECTIONS[anim.direction], "Swipe direction not supported: " .. tostring(anim.direction))
 	assert(anim.duration, "`duration` required for swipe animation type.")
 	assert(anim.frames, "`frames` required for swipe animation type.")
 	assert(anim.direction, "`direction` required for swipe animation type.")
 end
 
 function M.play(anim, global_opts)
-	local direction = anim.direction
+	local dir = DIRECTIONS[anim.direction]
 	local duration = anim.duration
 	local opts = vim.tbl_deep_extend("force", global_opts or {}, anim.opts or {})
 
-	local frame = normalize_frame(anim.frames[1])
-	local max_width, height = get_frame_dimensions(frame)
+	local frame = utils.normalize_frame(anim.frames[1])
+	local width, height = get_frame_dimensions(frame)
 
-	local total_shifts, shift_per_frame
-
-	if direction == "left" or direction == "right" then
-		total_shifts = max_width
-		shift_per_frame = total_shifts / (duration / FRAME_DELAY)
-	else
-		total_shifts = height
-		shift_per_frame = total_shifts / (duration / FRAME_DELAY)
-	end
+	local total_shifts = dir.x ~= 0 and width or height
+	local shift_per_frame = total_shifts / (duration / FRAME_DELAY)
 
 	local buf, win
 	local current_shift = 0
@@ -118,12 +103,7 @@ function M.play(anim, global_opts)
 				return
 			end
 
-			local shifted_frame
-			if direction == "left" or direction == "right" then
-				shifted_frame = shift_frame_horizontal(frame, math.floor(current_shift), direction, max_width)
-			else
-				shifted_frame = shift_frame_vertical(frame, math.floor(current_shift), direction, max_width)
-			end
+			local shifted_frame = shift_frame(frame, math.floor(current_shift), dir, width)
 
 			if not buf then
 				buf, win = window.open(shifted_frame, opts)

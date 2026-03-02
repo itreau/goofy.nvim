@@ -1,25 +1,16 @@
 local window = require("goofy.engine.window")
+local utils = require("goofy.utils")
 
 local M = {}
 
-local function normalize_frame(frame)
-	if type(frame) == "string" then
-		local lines = vim.split(frame, "\n", { plain = true, trimempty = false })
-		for i, line in ipairs(lines) do
-			lines[i] = line:gsub("\r", "")
-		end
-		return lines
-	end
-	return frame
-end
-
 function M.validate(anim)
 	assert(anim.frames, "Keyframe animation requires `frames`")
+	assert(anim.delay, "keyframe animation requires `delay`")
 end
 
 function M.play(anim, global_opts)
 	local frames = anim.frames
-	local delay = anim.delay or 100
+	local delay = anim.delay
 
 	local opts = vim.tbl_deep_extend("force", global_opts or {}, anim.opts or {})
 
@@ -40,7 +31,7 @@ function M.play(anim, global_opts)
 				return
 			end
 
-			local frame = normalize_frame(frames[i])
+			local frame = utils.normalize_frame(frames[i])
 			if not buf then
 				buf, win = window.open(frame, opts)
 			else
