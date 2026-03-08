@@ -69,7 +69,7 @@ function M.validate(anim)
 	assert(anim.direction, "`direction` required for swipe animation type.")
 end
 
-function M.play(anim, global_opts)
+function M.play(anim, global_opts, on_complete)
 	local dir = DIRECTIONS[anim.direction]
 	local duration = anim.duration
 	local opts = vim.tbl_deep_extend("force", global_opts or {}, anim.opts or {})
@@ -99,6 +99,9 @@ function M.play(anim, global_opts)
 				timer:close()
 				if win and vim.api.nvim_win_is_valid(win) then
 					vim.api.nvim_win_close(win, true)
+				end
+				if on_complete then
+					on_complete()
 				end
 				return
 			end

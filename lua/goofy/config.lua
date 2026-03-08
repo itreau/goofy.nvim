@@ -12,6 +12,7 @@ M.defaults = {
 	animation = {
 		delay = 30,
 		loop = false,
+		sequence_delay = 0,
 	},
 
 	animations = {},

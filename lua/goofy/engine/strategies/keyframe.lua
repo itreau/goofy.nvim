@@ -8,7 +8,7 @@ function M.validate(anim)
 	assert(anim.delay, "keyframe animation requires `delay`")
 end
 
-function M.play(anim, global_opts)
+function M.play(anim, global_opts, on_complete)
 	local frames = anim.frames
 	local delay = anim.delay
 
@@ -27,6 +27,9 @@ function M.play(anim, global_opts)
 				timer:close()
 				if win and vim.api.nvim_win_is_valid(win) then
 					vim.api.nvim_win_close(win, true)
+				end
+				if on_complete then
+					on_complete()
 				end
 				return
 			end

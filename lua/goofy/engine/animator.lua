@@ -5,7 +5,7 @@ local strategies = {
 
 local M = {}
 
-function M.play(anim, global_opts)
+function M.play(anim, global_opts, on_complete)
 	local anim_type = anim.type or "keyframe"
 	local strategy = strategies[anim_type]
 
@@ -15,7 +15,7 @@ function M.play(anim, global_opts)
 		strategy.validate(anim)
 	end
 
-	strategy.play(anim, global_opts)
+	strategy.play(anim, global_opts, on_complete)
 end
 
 return M

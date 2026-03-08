@@ -17,6 +17,14 @@ local M = {
     end
     return result
   end,
+  
+  log = {
+    levels = {
+      WARN = 2,
+      ERROR = 3,
+      INFO = 1,
+    },
+  },
 }
 
 return M

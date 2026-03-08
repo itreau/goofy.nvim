@@ -62,6 +62,7 @@ require("goofy").setup({
   animation = {
     delay = 30,                 -- default frame delay in ms
     loop = false,               -- whether to loop animations
+    sequence_delay = 0,         -- delay between sequential animations in ms
   },
   animations = {
     -- your animation registrations here
@@ -109,6 +110,31 @@ animations = {
   },
 }
 ```
+
+### Sequential Animations
+
+You can chain multiple animations to play sequentially by providing an array of animation names:
+
+```lua
+animations = {
+  celebrate_save = {
+    command = "wq",
+    animation = {"write", "cool_glasses"},  -- plays in sequence
+    delay = 100,  -- optional delay between animations in ms
+  },
+  test_success = {
+    trigger = "BufWritePost",
+    animation = {"write", "fire_meme"},
+    delay = 150,  -- ms between animations
+  },
+}
+```
+
+Each animation in the sequence:
+- Plays in order after the previous animation completes
+- Uses its own window settings (position, color, etc.)
+- Can have a configurable delay between animations via the `delay` option
+- If `delay` is not specified, defaults to `sequence_delay` from config (0ms by default)
 
 ## Animation Strategies
 

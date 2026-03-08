@@ -18,7 +18,7 @@ $$  /   \$$ |$$ |  $$ |$$$$$$\    $$ |   $$$$$$\ $$ | \$$ |\$$$$$$  |$$\ $$\ $$\
 	},
 	opts = {
 		color = "String",
-		position = "center",
+		position = "bottom_center",
 		width = 82,
 		height = 10,
 	},
