@@ -1,9 +1,9 @@
 return {
-	type = "swipe",
-	duration = 500,
-	direction = "left",
-	frames = {
-		[[
+  type = "swipe",
+  duration = 500,
+  direction = "left",
+  frames = {
+    [[
                 _2=826=8
                24      37
               80        .
@@ -40,11 +40,11 @@ return {
            070_____0492_
 
 ]],
-	},
-	opts = {
-		color = "String",
-		position = "center",
-		width = 52,
-		height = 36,
-	},
+  },
+  opts = {
+    color = "String",
+    position = "center",
+    width = 52,
+    height = 36,
+  },
 }

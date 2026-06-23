@@ -1,13 +1,9 @@
 local M = {}
 
-local function get_editor_dims()
-  return vim.o.lines, vim.o.columns
-end
+local function get_editor_dims() return vim.o.lines, vim.o.columns end
 
 local positions = {
-  top_left = function(w, h)
-    return { row = 1, col = 1 }
-  end,
+  top_left = function(w, h) return { row = 1, col = 1 } end,
   top_center = function(w, h)
     local _, cols = get_editor_dims()
     return { row = 1, col = math.floor((cols - w) / 2) }
@@ -43,14 +39,10 @@ local positions = {
 }
 
 local function calculate_width(lines, opts)
-  if opts.width then
-    return opts.width
-  end
+  if opts.width then return opts.width end
   local max_len = 0
   for _, line in ipairs(lines) do
-    if #line > max_len then
-      max_len = #line
-    end
+    if #line > max_len then max_len = #line end
   end
   return max_len
 end

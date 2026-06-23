@@ -7,14 +7,14 @@ local M = {}
 --- @param frame string|table A heredoc string or array of lines
 --- @return table Array of lines
 function M.normalize_frame(frame)
-	if type(frame) == "string" then
-		local lines = vim.split(frame, "\n", { plain = true, trimempty = false })
-		for i, line in ipairs(lines) do
-			lines[i] = line:gsub("\r", "")
-		end
-		return lines
-	end
-	return frame
+  if type(frame) == "string" then
+    local lines = vim.split(frame, "\n", { plain = true, trimempty = false })
+    for i, line in ipairs(lines) do
+      lines[i] = line:gsub("\r", "")
+    end
+    return lines
+  end
+  return frame
 end
 
 return M

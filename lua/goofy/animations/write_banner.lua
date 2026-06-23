@@ -1,9 +1,9 @@
 return {
-	type = "swipe",
-	duration = 1000,
-	direction = "left",
-	frames = {
-		[[
+  type = "swipe",
+  duration = 1000,
+  direction = "left",
+  frames = {
+    [[
 
 $$\      $$\ $$$$$$$\  $$$$$$\ $$$$$$$$\ $$$$$$\ $$\   $$\  $$$$$$\
 $$ | $\  $$ |$$  __$$\ \_$$  _|\__$$  __|\_$$  _|$$$\  $$ |$$  __$$\
@@ -15,11 +15,11 @@ $$  /   \$$ |$$ |  $$ |$$$$$$\    $$ |   $$$$$$\ $$ | \$$ |\$$$$$$  |$$\ $$\ $$\
 \__/     \__|\__|  \__|\______|   \__|   \______|\__|  \__| \______/ \__|\__|\__|
 
 ]],
-	},
-	opts = {
-		color = "String",
-		position = "bottom_center",
-		width = 82,
-		height = 10,
-	},
+  },
+  opts = {
+    color = "String",
+    position = "bottom_center",
+    width = 82,
+    height = 10,
+  },
 }

@@ -1,21 +1,19 @@
 local strategies = {
-	["keyframe"] = require("goofy.engine.strategies.keyframe"),
-	["swipe"] = require("goofy.engine.strategies.swipe"),
+  ["keyframe"] = require "goofy.engine.strategies.keyframe",
+  ["swipe"] = require "goofy.engine.strategies.swipe",
 }
 
 local M = {}
 
 function M.play(anim, global_opts, on_complete)
-	local anim_type = anim.type or "keyframe"
-	local strategy = strategies[anim_type]
+  local anim_type = anim.type or "keyframe"
+  local strategy = strategies[anim_type]
 
-	assert(strategy, "Unknown animation type: " .. tostring(anim_type))
+  assert(strategy, "Unknown animation type: " .. tostring(anim_type))
 
-	if strategy.validate then
-		strategy.validate(anim)
-	end
+  if strategy.validate then strategy.validate(anim) end
 
-	strategy.play(anim, global_opts, on_complete)
+  strategy.play(anim, global_opts, on_complete)
 end
 
 return M
