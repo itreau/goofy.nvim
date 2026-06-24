@@ -1,4 +1,11 @@
-# goofy.nvim
+```
+ ▄▄▄▄▄▄▄    ▄▄▄▄▄     ▄▄▄▄▄    ▄▄▄▄▄▄▄ ▄▄▄   ▄▄▄  ▄▄▄    ▄▄▄ ▄▄▄▄  ▄▄▄▄ ▄▄▄▄▄ ▄▄▄      ▄▄▄
+███▀▀▀▀▀  ▄███████▄ ▄███████▄ ███▀▀▀▀▀ ███   ███  ████▄  ███ ▀███  ███▀  ███  ████▄  ▄████
+███       ███   ███ ███   ███ ███▄▄    ▀███▄███▀  ███▀██▄███  ███  ███   ███  ███▀████▀███
+███  ███▀ ███▄▄▄███ ███▄▄▄███ ███▀▀      ▀███▀    ███  ▀████  ███▄▄███   ███  ███  ▀▀  ███
+▀██████▀   ▀█████▀   ▀█████▀  ███         ███  ██ ███    ███   ▀████▀   ▄███▄ ███      ███
+
+```
 
 A silly plugin to enhance your Neovim experience with ASCII art animation feedback for commands.
 
@@ -131,6 +138,7 @@ animations = {
 ```
 
 Each animation in the sequence:
+
 - Plays in order after the previous animation completes
 - Uses its own window settings (position, color, etc.)
 - Can have a configurable delay between animations via the `delay` option
