@@ -1,2 +1,2 @@
-vim.opt.runtimepath:append(".")
-vim.opt.packpath:append(".")
+vim.opt.runtimepath:append "."
+vim.opt.packpath:append "."
