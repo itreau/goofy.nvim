@@ -1,6 +1,22 @@
 local M = {}
 
-local function get_editor_dims() return vim.o.lines, vim.o.columns end
+local ns = vim.api.nvim_create_namespace "goofy"
+M.ns = ns
+
+local function get_editor_dims()
+  local lines = vim.o.lines or 24
+  local cols = vim.o.columns or 80
+  local usable_rows = lines - (vim.o.cmdheight or 0)
+  local laststatus = vim.o.laststatus or 0
+  if laststatus > 0 then usable_rows = usable_rows - 1 end
+  local showtabline = vim.o.showtabline or 0
+  if showtabline == 2 then
+    usable_rows = usable_rows - 1
+  elseif showtabline == 1 and vim.api.nvim_list_tabpages and #vim.api.nvim_list_tabpages() > 1 then
+    usable_rows = usable_rows - 1
+  end
+  return usable_rows, cols
+end
 
 local positions = {
   top_left = function(w, h) return { row = 1, col = 1 } end,
@@ -42,16 +58,38 @@ local function calculate_width(lines, opts)
   if opts.width then return opts.width end
   local max_len = 0
   for _, line in ipairs(lines) do
-    if #line > max_len then max_len = #line end
+    local len = vim.fn.strdisplaywidth(line)
+    if len > max_len then max_len = len end
   end
   return max_len
+end
+
+function M.apply_highlights(buf, color, height)
+  if not color then return end
+  for i = 0, height - 1 do
+    vim.api.nvim_buf_add_highlight(buf, ns, color, i, 0, -1)
+  end
+end
+
+function M.render_frame(buf, lines, opts)
+  opts = opts or {}
+  local height = opts.height or #lines
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  M.apply_highlights(buf, opts.color, height)
 end
 
 function M.open(lines, opts)
   opts = opts or {}
 
+  if opts.position and not positions[opts.position] then
+    vim.notify(
+      "Goofy: unknown position '" .. tostring(opts.position) .. "', defaulting to bottom_right",
+      vim.log.levels.WARN
+    )
+  end
+
   local buf = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  M.render_frame(buf, lines, opts)
 
   local width = calculate_width(lines, opts)
   local height = opts.height or #lines
@@ -68,12 +106,6 @@ function M.open(lines, opts)
     style = "minimal",
     border = opts.border or "rounded",
   })
-
-  if opts.color then
-    for i = 0, height - 1 do
-      vim.api.nvim_buf_add_highlight(buf, -1, opts.color, i, 0, -1)
-    end
-  end
 
   return buf, win
 end

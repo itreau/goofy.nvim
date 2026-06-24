@@ -100,11 +100,22 @@ M.fn = {
   end,
 }
 
--- Fake uv timer
+-- Fake uv timer. Captures the callback so tests can drive frames via :fire().
+-- All instances are tracked in M._fake_timers; reset via M.reset_fake_timers() in before_each.
+M._fake_timers = {}
+
 local FakeTimer = {}
 FakeTimer.__index = FakeTimer
-function FakeTimer.new() return setmetatable({ started = false, closed = false }, FakeTimer) end
-function FakeTimer:start(_timeout, _repeat, _cb) self.started = true end
+function FakeTimer.new()
+  local t = setmetatable({ started = false, closed = false, _cb = nil, _repeat = 0 }, FakeTimer)
+  table.insert(M._fake_timers, t)
+  return t
+end
+function FakeTimer:start(_timeout, repeat_ms, cb)
+  self.started = true
+  self._cb = cb
+  self._repeat = repeat_ms or 0
+end
 function FakeTimer:stop() self.started = false end
 function FakeTimer:close()
   self.closed = true
@@ -112,6 +123,11 @@ function FakeTimer:close()
 end
 function FakeTimer:is_closing() return self.closed end
 function FakeTimer:is_active() return self.started and not self.closed end
+function FakeTimer:fire()
+  if self._cb then self._cb() end
+end
+
+M.reset_fake_timers = function() M._fake_timers = {} end
 
 M.uv = {
   new_timer = FakeTimer.new,
@@ -134,6 +150,7 @@ M.api = {
   nvim_buf_get_var = function() return nil end,
   nvim_buf_set_var = function() end,
   nvim_get_runtime_file = function() return {} end,
+  nvim_list_tabpages = function() return { 1 } end,
 }
 
 return M
