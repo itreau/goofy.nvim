@@ -1,10 +1,19 @@
-local dispatch = require "goofy.dispatch"
-
 local M = {}
 
-function M.register(hook)
+local function build_ctx(hook)
+  return {
+    delay = hook.delay,
+    opts = hook.opts,
+  }
+end
+
+function M.register(hook, group)
   vim.api.nvim_create_autocmd(hook.event, {
-    callback = function(ctx) dispatch.fire(hook.animation, ctx) end,
+    group = group,
+    callback = function()
+      local dispatch = require "goofy.dispatch"
+      dispatch.fire(hook.animation, build_ctx(hook))
+    end,
   })
 end
 
