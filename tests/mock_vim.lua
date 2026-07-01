@@ -1,5 +1,13 @@
 -- Mock vim module for testing (pure-Lua, no nvim dependency)
 -- Tests may override individual fields (vim.defer_fn, vim.api.*, etc.) per-case.
+--
+-- Captured at first require (while _G.vim is still the real nvim) so that plenary's
+-- busted runner (vim.deepcopy/vim.inspect) and nvim's Lua module loader
+-- (vim.api.nvim__get_runtime) keep working after a test replaces _G.vim with this mock.
+local _real = _G.vim or {}
+local _real_api = _real.api or {}
+local _real_fn = _real.fn or {}
+
 local M = {}
 
 local function copy(t)
@@ -96,7 +104,23 @@ M.fn = {
       base = base:gsub("%.lua$", "")
       return base
     end
+    if mod == ":h" then
+      -- parent dir: trim the final path component
+      return (name:gsub("/[^/]*$", ""))
+    end
     return name
+  end,
+  -- identity by default; tests may override
+  expand = function(s) return s end,
+  -- pessimistic by default so registry tests must stub the real fs
+  isdirectory = function(_p) return 0 end,
+  filereadable = function(_p) return 0 end,
+}
+
+-- vim.fs stub. Default dir() yields nothing; tests override with a real listing.
+M.fs = {
+  dir = function(_path)
+    return function() end
   end,
 }
 
@@ -151,6 +175,12 @@ M.api = {
   nvim_buf_set_var = function() end,
   nvim_get_runtime_file = function() return {} end,
   nvim_list_tabpages = function() return { 1 } end,
+  -- delegate module resolution to real nvim so `require("goofy.*")` works post-mock
+  nvim__get_runtime = _real_api.nvim__get_runtime or function() return {} end,
 }
+
+-- Pass through real nvim helpers used by plenary.busted after _G.vim is mocked.
+M.deepcopy = _real.deepcopy or function(x) return x end
+M.inspect = _real.inspect or function(x) return tostring(x) end
 
 return M

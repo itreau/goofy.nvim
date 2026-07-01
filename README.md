@@ -71,12 +71,12 @@ require("goofy").setup({
   },
   animation = {
     delay = 30,                 -- default frame delay in ms
-    loop = false,               -- whether to loop animations
     sequence_delay = 0,         -- default delay between sequential animations in ms
   },
   animations = {
     -- your animation registrations here (see below)
   },
+  animations_dir = nil,         -- optional: path to a directory of your own animations
 })
 ```
 
@@ -96,7 +96,7 @@ Animations can be triggered by:
 animations = {
   write = {
     command = "w",              -- creates proxy :Goofyw that runs :w then fires the animation
-    animation = "write",        -- name of a file under lua/goofy/animations/
+    animation = "write",        -- name of an animation (a folder under lua/goofy/animations/ or your animations_dir)
   },
   quit = {
     command = "q",
@@ -172,20 +172,29 @@ don't suppress one another.
 
 Goofy supports multiple animation strategies. Each strategy defines how the animation is played.
 
-### Keyframe Strategy (Default)
+### Animation Layout
 
-The keyframe strategy plays through a sequence of frames, displaying each for a set duration. This is the default strategy if no `type` is specified.
+Every animation lives in its own **folder** containing an `animation.lua` spec and a
+`frames/` subdirectory of frame files:
+
+```
+lua/goofy/animations/my_keyframe/
+├── animation.lua
+└── frames/
+    ├── 1.txt
+    ├── 2.txt
+    └── 3.txt
+```
+
+`animation.lua` returns a table describing the animation — **without** a `frames` field.
+Frames are loaded at runtime from sibling `frames/*.txt` files:
 
 ```lua
--- lua/goofy/animations/my_keyframe.lua
+-- lua/goofy/animations/my_keyframe/animation.lua
 return {
-  type = "keyframe",  -- optional, this is the default
-  delay = 200,        -- milliseconds between frames
-  frames = {
-    { "Frame 1", "Line 2" },
-    { "Frame 2", "Line 2" },
-    { "Frame 3", "Line 2" },
-  },
+  name = "my_keyframe",   -- required: the animation name (folder name is ignored)
+  type = "keyframe",      -- optional, this is the default
+  delay = 200,            -- milliseconds between frames
   opts = {
     color = "String",
     position = "center",
@@ -195,50 +204,42 @@ return {
 }
 ```
 
-#### Heredoc Format (block text)
+#### Frame Files
 
-```lua
-return {
-  delay = 500,
-  frames = {
-    [[
+- One file per frame, named `<n>.txt` where `n` is the 1-based frame index (`1.txt`, `2.txt`, …).
+- Indices must be **contiguous** starting at 1 (a gap like `1.txt`, `3.txt` is an error).
+- File contents are the frame's text. A single trailing newline is stripped if present
+  (so files ending in one `\n` produce no extra blank line); any other blank lines are
+  preserved. Multi-line files are split on `\n` into screen lines.
+
+```
+# frames/1.txt
   ___
  /   \
 |  W  |
  \___/
-    ]],
-    [[
-  ___
- /   \
-|  !  |
- \___/
-    ]],
-  },
-  opts = {
-    color = "WarningMsg",
-    position = "center",
-  },
-}
 ```
+
+For swipe animations, `frames/` contains a single `1.txt`.
+
+### Keyframe Strategy (Default)
+
+The keyframe strategy plays through a sequence of frames, displaying each for a set
+duration. This is the default strategy if no `type` is specified. See the layout above
+(`frames/1.txt`, `2.txt`, … become the flipbook frames, advanced at `delay` ms each).
 
 ### Swipe Strategy
 
-The swipe strategy moves a single frame across the screen in a specified direction until it swipes off-screen.
+The swipe strategy moves a single frame across the screen in a specified direction until
+it swipes off-screen. `frames/` contains one file (`1.txt`).
 
 ```lua
--- lua/goofy/animations/my_swipe.lua
+-- lua/goofy/animations/my_swipe/animation.lua
 return {
+  name = "my_swipe",
   type = "swipe",
   direction = "left",     -- "left", "right", "up", or "down"
   duration = 500,         -- total swipe duration in milliseconds
-  frames = {
-    [[
-  ___
- /   \
-|  W  |
- \___/
-    ]],
-  },
   opts = {
     color = "String",
     position = "center",
@@ -250,18 +251,18 @@ return {
 
 | Option      | Type   | Required | Description                                               |
 | ----------- | ------ | -------- | --------------------------------------------------------- |
+| `name`      | string | Yes      | Animation name (folder name is ignored)                   |
 | `type`      | string | Yes      | Must be `"swipe"`                                         |
 | `direction` | string | Yes      | Direction to swipe: `"left"`, `"right"`, `"up"`, `"down"` |
 | `duration`  | number | Yes      | Total duration of the swipe animation in milliseconds     |
-| `frames`    | table  | Yes      | Single frame to animate (array with one element)          |
 | `opts`      | table  | No       | Window options (color, position, width, height)           |
 
 `direction` semantics (content **exits** in that direction):
 
-- `"left"`  - content slides left (the trailing edge vanishes off the left)
+- `"left"` - content slides left (the trailing edge vanishes off the left)
 - `"right"` - content slides right
-- `"up"`    - content slides up (top line drops off, empty appends at bottom)
-- `"down"`  - content slides down (bottom line drops off, empty prepends on top)
+- `"up"` - content slides up (top line drops off, empty appends at bottom)
+- `"down"` - content slides down (bottom line drops off, empty prepends on top)
 
 ### Custom Strategies
 
@@ -298,10 +299,10 @@ goofy.play_sequence({ "write", "cool_glasses" }, { delay = 100 })
 
 The `opts` table has two fields used internally:
 
-| Key    | Type   | Description                                              |
-| ------ | ------ | -------------------------------------------------------- |
+| Key     | Type   | Description                                              |
+| ------- | ------ | -------------------------------------------------------- |
 | `delay` | number | Delay in ms between animations in a sequence (default 0) |
-| `opts` | table  | Window/animation opts passed through to the strategy     |
+| `opts`  | table  | Window/animation opts passed through to the strategy     |
 
 ## Health Checks
 
@@ -309,7 +310,7 @@ Run `:checkhealth goofy` to verify:
 
 - Neovim version is 0.10+
 - Built-in strategies (`keyframe`, `swipe`) are registered
-- Animations are discoverable on the runtimepath
+- Animations are discovered (scans `lua/goofy/animations/*/animation.lua` on the runtimepath, plus your `animations_dir` if set)
 - No duplicate proxy commands in your config
 
 ## Available Animations
@@ -318,7 +319,34 @@ Run `:checkhealth goofy` to verify:
 - `cool_glasses` - Cool glasses ASCII art
 - `fire_meme` - Fire meme ASCII art
 - `write_banner` - Large "Write" banner swipe animation
-- Add your own in `lua/goofy/animations/`!
+- Add your own — see [Animation Layout](#animation-layout) and [User Animations](#user-animations)
+
+## User Animations
+
+Point `animations_dir` at a directory structured the same way as the built-ins and your
+animations merge with the defaults on startup:
+
+```lua
+require("goofy").setup({
+  animations_dir = "~/my_anims",
+  animations = {
+    write = { command = "w", animation = "write" },
+    mine = { command = "w", animation = "my_custom" },
+  },
+})
+```
+
+```
+~/my_anims/
+└── my_custom/
+    ├── animation.lua   -- return { name = "my_custom", delay = 200, opts = { ... } }
+    └── frames/
+        ├── 1.txt
+        └── 2.txt
+```
+
+If a user animation has the same `name` as a built-in, the user's version wins and a
+warning is logged.
 
 ## Contributing
 
@@ -335,10 +363,11 @@ We welcome contributions! While users can create their own custom animations, we
 
 To contribute a new animation:
 
-1. Create a new file in `lua/goofy/animations/`
-2. Use one of the supported strategies (keyframe or swipe)
-3. Test it works with your Neovim setup
-4. Submit a PR with a description and preview (gif/screenshot appreciated!)
+1. Create a new folder under `lua/goofy/animations/` (e.g. `my_anim/`)
+2. Add `animation.lua` with a required `name` field and strategy options (no `frames` field)
+3. Add a `frames/` subdirectory with `1.txt`, `2.txt`, … (1-based, contiguous)
+4. Test it works with your Neovim setup
+5. Submit a PR with a description and preview (gif/screenshot appreciated!)
 
 We especially welcome:
 

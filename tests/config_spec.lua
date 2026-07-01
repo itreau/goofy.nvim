@@ -17,7 +17,7 @@ describe("config", function()
         function()
           config.validate {
             window = { border = "rounded", position = "center" },
-            animation = { delay = 30, loop = false, sequence_delay = 0 },
+            animation = { delay = 30, sequence_delay = 0 },
             animations = {},
           }
         end
@@ -40,8 +40,12 @@ describe("config", function()
       assert.has.errors(function() config.validate { animation = { delay = -1 } } end)
     end)
 
-    it("errors when animation.loop is not a boolean", function()
-      assert.has.errors(function() config.validate { animation = { loop = 1 } } end)
+    it("errors when animations_dir is not a string", function()
+      assert.has.errors(function() config.validate { animations_dir = 123 } end)
+    end)
+
+    it("accepts animations_dir as a string", function()
+      assert.has_no.errors(function() config.validate { animations_dir = "~/goofy/anims" } end)
     end)
 
     it("errors when animations is not a table", function()
@@ -70,7 +74,7 @@ describe("config", function()
       assert.are.equal("rounded", merged.window.border)
       assert.are.equal("top_left", merged.window.position)
       assert.are.equal(100, merged.animation.delay)
-      assert.are.equal(false, merged.animation.loop)
+      assert.is_nil(merged.animation.loop)
     end)
 
     it("validates before merging", function()

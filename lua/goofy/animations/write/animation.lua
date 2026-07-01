@@ -1,10 +1,6 @@
 return {
+  name = "write",
   delay = 200,
-  frames = {
-    { "Saving." },
-    { "Saving.." },
-    { "Saving..." },
-  },
   opts = {
     color = "String",
     position = "center",

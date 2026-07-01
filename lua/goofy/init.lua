@@ -14,7 +14,7 @@ function M.setup(user_opts)
   local opts = config.merge(user_opts)
   M.opts = opts
 
-  registry.load()
+  registry.load(opts)
 
   local hook_specs = normalize.normalize(opts.animations)
   hooks.register_all(hook_specs)

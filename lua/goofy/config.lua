@@ -10,13 +10,13 @@ M.defaults = {
   },
   animation = {
     delay = 30,
-    loop = false,
     sequence_delay = 0,
   },
   animations = {},
+  animations_dir = nil,
 }
 
-local KNOWN_KEYS = { window = true, animation = true, animations = true }
+local KNOWN_KEYS = { window = true, animation = true, animations = true, animations_dir = true }
 
 function M.validate(user_opts)
   if user_opts == nil then return end
@@ -49,12 +49,13 @@ function M.validate(user_opts)
         "animation.sequence_delay must be a non-negative number"
       )
     end
-    if user_opts.animation.loop ~= nil then
-      assert(type(user_opts.animation.loop) == "boolean", "animation.loop must be a boolean")
-    end
   end
 
   if user_opts.animations ~= nil then assert(type(user_opts.animations) == "table", "animations must be a table") end
+
+  if user_opts.animations_dir ~= nil then
+    assert(type(user_opts.animations_dir) == "string", "animations_dir must be a string (directory path)")
+  end
 
   for k in pairs(user_opts) do
     if not KNOWN_KEYS[k] then

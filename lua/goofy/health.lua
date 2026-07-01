@@ -1,6 +1,7 @@
 local registry = require "goofy.registry"
 local animator = require "goofy.engine.animator"
 local config = require "goofy.config"
+local goofy = require "goofy"
 
 local M = {}
 
@@ -16,13 +17,20 @@ function M.check()
     })
   end
 
-  -- Animations discoverable on runtimepath
+  -- Animations discoverable
+  local goofy_opts = goofy.opts or config.defaults
+  local udir = goofy_opts.animations_dir
   local names = registry.list()
   if #names == 0 then
-    vim.health.warn "no animations found on runtimepath under lua/goofy/animations/"
+    vim.health.warn(
+      "no animations found (looked for lua/goofy/animations/*/animation.lua on runtimepath"
+        .. (udir and (" and " .. udir) or "")
+        .. ")"
+    )
   else
-    vim.health.ok(table.concat(names, ", "))
+    vim.health.ok("animations: " .. table.concat(names, ", "))
   end
+  if udir then vim.health.ok("user animations_dir: " .. udir) end
 
   -- Strategies loadable
   local keyframe = animator.get_strategy "keyframe"
