@@ -17,8 +17,8 @@ function M.register(hook, group)
     pattern = hook.ft,
     callback = function(ctx)
       if once then
-        local already = vim.api.nvim_buf_get_var(ctx.buf, mark)
-        if already then return end
+        local ok, already = pcall(vim.api.nvim_buf_get_var, ctx.buf, mark)
+        if ok and already then return end
         vim.api.nvim_buf_set_var(ctx.buf, mark, true)
       end
       local dispatch = require "goofy.dispatch"
